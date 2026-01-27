@@ -25,11 +25,28 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Mock user storage for development
-const mockUsers: Record<string, { email: string; password: string; user: User }> = {};
+// Helper functions for persisting mock users to localStorage
+const getMockUsersFromStorage = (): Record<string, { email: string; password: string; user: User }> => {
+  try {
+    const stored = localStorage.getItem('mock_users_db');
+    return stored ? JSON.parse(stored) : {};
+  } catch (e) {
+    console.error('Error reading mock users from storage:', e);
+    return {};
+  }
+};
+
+const saveMockUsersToStorage = (users: Record<string, { email: string; password: string; user: User }>) => {
+  try {
+    localStorage.setItem('mock_users_db', JSON.stringify(users));
+    console.log('Mock users saved to storage');
+  } catch (e) {
+    console.error('Error saving mock users to storage:', e);
+  }
+};
 
 const createMockUser = (email: string, fullName: string): User => ({
-  id: Math.random() * 1000,
+  id: Math.floor(Math.random() * 1000000),
   email,
   full_name: fullName,
   created_at: new Date().toISOString(),
@@ -37,7 +54,16 @@ const createMockUser = (email: string, fullName: string): User => ({
 });
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-const USE_MOCK_API = import.meta.env.VITE_USE_MOCK_API === 'true';
+// Force mock API mode by default - set to false to use real backend
+const USE_MOCK_API = import.meta.env.VITE_USE_MOCK_API !== 'false';
+
+// Log configuration for debugging
+console.log('Auth Config:', { 
+  API_URL, 
+  USE_MOCK_API, 
+  VITE_USE_MOCK_API: import.meta.env.VITE_USE_MOCK_API,
+  mode: import.meta.env.MODE
+});
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
@@ -96,7 +122,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       if (USE_MOCK_API) {
         // Mock login
+        const mockUsers = getMockUsersFromStorage();
         const userKey = `${email}_${password}`;
+        console.log('Login attempt, checking for user:', userKey);
+        console.log('Available users:', Object.keys(mockUsers));
+        
         if (mockUsers[userKey]) {
           const userData = mockUsers[userKey].user;
           const token = `token_${Date.now()}`;
@@ -104,6 +134,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           localStorage.setItem(`user_${token}`, JSON.stringify(userData));
           setUser(userData);
           setIsAuthenticated(true);
+          console.log('Login successful');
         } else {
           throw new Error('Invalid email or password');
         }
@@ -137,20 +168,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const register = async (email: string, password: string, fullName: string) => {
     setIsLoading(true);
     try {
+      console.log('Register attempt:', { email, fullName, USE_MOCK_API });
+      
       if (USE_MOCK_API) {
         // Mock registration
+        let mockUsers = getMockUsersFromStorage();
         const userKey = `${email}_${password}`;
+        
         if (mockUsers[userKey]) {
           throw new Error('Email already registered');
         }
+        
         const userData = createMockUser(email, fullName);
         mockUsers[userKey] = { email, password, user: userData };
+        saveMockUsersToStorage(mockUsers);
         
         const token = `token_${Date.now()}`;
         localStorage.setItem('authToken', token);
         localStorage.setItem(`user_${token}`, JSON.stringify(userData));
         setUser(userData);
         setIsAuthenticated(true);
+        console.log('Mock registration successful:', userData);
       } else {
         const response = await fetch(`${API_URL}/api/auth/register`, {
           method: 'POST',
@@ -171,6 +209,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setIsAuthenticated(true);
       }
     } catch (error) {
+      console.error('Registration error:', error);
       setIsAuthenticated(false);
       throw error;
     } finally {

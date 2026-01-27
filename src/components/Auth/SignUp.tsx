@@ -47,10 +47,13 @@ export const SignUp: React.FC = () => {
     setIsLoading(true);
 
     try {
+      console.log('Attempting registration with:', { email: formData.email, fullName: formData.fullName });
       await register(formData.email, formData.password, formData.fullName);
       navigate('/dashboard');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Registration failed');
+      const errorMessage = err instanceof Error ? err.message : 'Registration failed';
+      console.error('Registration error:', errorMessage);
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }

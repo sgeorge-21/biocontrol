@@ -168,3 +168,6 @@ def get_token_from_request():
     if auth_header and auth_header.startswith('Bearer '):
         return auth_header.split(' ')[1]
     return None
+
+VITE_API_URL=http://localhost:5000
+VITE_USE_MOCK_API=false
