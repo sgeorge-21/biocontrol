@@ -29,7 +29,7 @@ export const Header: React.FC = () => {
             onClick={() => navigate('/home')}
             className="text-xl font-bold hover:text-primary transition-colors cursor-pointer"
           >
-            Malaria Monitor
+           Biocontrol
           </button>
         </div>
 
