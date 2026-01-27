@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { UserPlus, AlertCircle, Loader } from 'lucide-react';
+import { UserPlus, AlertCircle, Loader, CheckCircle } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/hooks/use-toast';
 
 export const SignUp: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -16,8 +17,10 @@ export const SignUp: React.FC = () => {
   });
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
   const { register } = useAuth();
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -49,7 +52,14 @@ export const SignUp: React.FC = () => {
     try {
       console.log('Attempting registration with:', { email: formData.email, fullName: formData.fullName });
       await register(formData.email, formData.password, formData.fullName);
-      navigate('/dashboard');
+      setIsSuccess(true);
+      toast({
+        title: 'Account Created Successfully!',
+        description: 'Please sign in with your credentials to continue.',
+      });
+      setTimeout(() => {
+        navigate('/login');
+      }, 2000);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Registration failed';
       console.error('Registration error:', errorMessage);
@@ -76,6 +86,14 @@ export const SignUp: React.FC = () => {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
+              {isSuccess && (
+                <Alert className="border-green-500 bg-green-50">
+                  <CheckCircle className="h-4 w-4 text-green-600" />
+                  <AlertDescription className="text-green-800">
+                    Account created successfully! Redirecting to sign in...
+                  </AlertDescription>
+                </Alert>
+              )}
               {error && (
                 <Alert variant="destructive">
                   <AlertCircle className="h-4 w-4" />

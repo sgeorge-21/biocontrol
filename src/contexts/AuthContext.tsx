@@ -171,7 +171,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.log('Register attempt:', { email, fullName, USE_MOCK_API });
       
       if (USE_MOCK_API) {
-        // Mock registration
+        // Mock registration - DO NOT auto-login
         let mockUsers = getMockUsersFromStorage();
         const userKey = `${email}_${password}`;
         
@@ -183,11 +183,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         mockUsers[userKey] = { email, password, user: userData };
         saveMockUsersToStorage(mockUsers);
         
-        const token = `token_${Date.now()}`;
-        localStorage.setItem('authToken', token);
-        localStorage.setItem(`user_${token}`, JSON.stringify(userData));
-        setUser(userData);
-        setIsAuthenticated(true);
+        // Don't set user or authentication - let them login manually
         console.log('Mock registration successful:', userData);
       } else {
         const response = await fetch(`${API_URL}/api/auth/register`, {
@@ -203,10 +199,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           throw new Error(error.error || 'Registration failed');
         }
 
-        const data = await response.json();
-        localStorage.setItem('authToken', data.token);
-        setUser(data.user);
-        setIsAuthenticated(true);
+        // Don't auto-login after registration - user must sign in with credentials
       }
     } catch (error) {
       console.error('Registration error:', error);

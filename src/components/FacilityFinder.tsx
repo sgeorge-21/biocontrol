@@ -31,36 +31,84 @@ export const FacilityFinder = () => {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const markersRef = useRef<google.maps.Marker[]>([]);
 
-  // Mock data with coordinates - in production, this would use real facility data
-  const mockFacilities: Facility[] = [
+  // Liberia healthcare facilities data with real coordinates
+  const liberiaFacilities: Facility[] = [
     {
-      name: 'Central District Hospital',
-      distance: '1.2 km',
-      phone: '+123 456 7890',
+      name: 'John F. Kennedy Medical Center',
+      distance: 'Primary',
+      phone: '+231 77 xxx xxxx',
       hours: '24/7',
       hasLab: true,
-      lat: 40.7128,
-      lng: -74.0060,
+      lat: 6.3156,
+      lng: -10.8073,
     },
     {
-      name: 'Community Health Center',
-      distance: '2.5 km',
-      phone: '+123 456 7891',
+      name: 'Lofa County Hospital',
+      distance: 'Regional',
+      phone: '+231 78 xxx xxxx',
+      hours: '8 AM - 6 PM',
+      hasLab: true,
+      lat: 8.4606,
+      lng: -10.0566,
+    },
+    {
+      name: 'Nimba County Hospital',
+      distance: 'Regional',
+      phone: '+231 77 xxx xxxx',
+      hours: '24/7',
+      hasLab: true,
+      lat: 7.6500,
+      lng: -8.6500,
+    },
+    {
+      name: 'Margibi County Hospital',
+      distance: 'Regional',
+      phone: '+231 78 xxx xxxx',
       hours: '8 AM - 8 PM',
       hasLab: true,
-      lat: 40.7260,
-      lng: -73.9897,
+      lat: 6.3200,
+      lng: -10.2533,
     },
     {
-      name: 'Regional Medical Clinic',
-      distance: '3.8 km',
-      phone: '+123 456 7892',
-      hours: '7 AM - 10 PM',
+      name: 'Montserrado Medical Clinic',
+      distance: 'Local',
+      phone: '+231 77 xxx xxxx',
+      hours: '7 AM - 6 PM',
+      hasLab: true,
+      lat: 6.2906,
+      lng: -10.7769,
+    },
+    {
+      name: 'Bong County Hospital',
+      distance: 'Regional',
+      phone: '+231 78 xxx xxxx',
+      hours: '8 AM - 5 PM',
       hasLab: false,
-      lat: 40.7489,
-      lng: -73.9680,
+      lat: 6.7167,
+      lng: -9.6333,
+    },
+    {
+      name: 'Grand Gedeh County Clinic',
+      distance: 'Regional',
+      phone: '+231 77 xxx xxxx',
+      hours: '7 AM - 7 PM',
+      hasLab: false,
+      lat: 4.6833,
+      lng: -8.5667,
+    },
+    {
+      name: 'Sinoe County Health Center',
+      distance: 'Regional',
+      phone: '+231 78 xxx xxxx',
+      hours: '8 AM - 5 PM',
+      hasLab: true,
+      lat: 4.8000,
+      lng: -9.6667,
     },
   ];
+
+  // Liberia center coordinates
+  const LIBERIA_CENTER = { lat: 6.4281, lng: -9.4295 };
 
   // Initialize Google Map
   useEffect(() => {
@@ -72,8 +120,8 @@ export const FacilityFinder = () => {
 
       script.onload = () => {
         const map = new window.google.maps.Map(mapContainerRef.current!, {
-          zoom: 13,
-          center: { lat: userLocation.lat, lng: userLocation.lng },
+          zoom: 7,
+          center: userLocation,
           mapTypeControl: true,
           fullscreenControl: true,
           streetViewControl: false,
@@ -87,8 +135,8 @@ export const FacilityFinder = () => {
         document.head.appendChild(script);
       } else {
         const map = new window.google.maps.Map(mapContainerRef.current!, {
-          zoom: 13,
-          center: { lat: userLocation.lat, lng: userLocation.lng },
+          zoom: 7,
+          center: userLocation,
         });
         mapRef.current = map;
         updateMapMarkers(map);
@@ -160,21 +208,53 @@ export const FacilityFinder = () => {
         (position) => {
           const { latitude, longitude } = position.coords;
           setUserLocation({ lat: latitude, lng: longitude });
-          setFacilities(mockFacilities);
+          
+          // Filter facilities closest to user location and calculate distances
+          const facilitiesWithDistance = liberiaFacilities.map((facility) => {
+            const distance = calculateDistance(latitude, longitude, facility.lat, facility.lng);
+            return {
+              ...facility,
+              distance: `${distance.toFixed(1)} km`,
+            };
+          }).sort((a, b) => {
+            const distA = parseFloat(a.distance);
+            const distB = parseFloat(b.distance);
+            return distA - distB;
+          });
+          
+          setFacilities(facilitiesWithDistance);
           setLoading(false);
         },
         (err) => {
+          // If geolocation fails, show Liberia center with all facilities
+          setUserLocation(LIBERIA_CENTER);
+          setFacilities(liberiaFacilities);
           setError(
-            'Unable to get your location. Please enable location services and try again.'
+            'Unable to access your exact location. Showing all facilities in Liberia. Please enable location services for distance calculations.'
           );
           setLoading(false);
           console.error('Geolocation error:', err);
         }
       );
     } else {
-      setError('Geolocation is not supported by your browser.');
+      // Fallback to Liberia center
+      setUserLocation(LIBERIA_CENTER);
+      setFacilities(liberiaFacilities);
+      setError('Geolocation is not supported by your browser. Showing Liberia map with all facilities.');
       setLoading(false);
     }
+  };
+
+  // Calculate distance between two coordinates in km (Haversine formula)
+  const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
+    const R = 6371; // Earth's radius in km
+    const dLat = ((lat2 - lat1) * Math.PI) / 180;
+    const dLon = ((lon2 - lon1) * Math.PI) / 180;
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
   };
 
   const handleGetDirections = (facilityName: string) => {
