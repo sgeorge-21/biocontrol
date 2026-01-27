@@ -1,16 +1,18 @@
 import { useState } from 'react';
 import { Activity, BookOpen, MapPin, Hospital } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { MalariaChat } from '@/components/MalariaChat';
-import { EducationSection } from '@/components/EducationSection';
-import { OutbreakWarning } from '@/components/OutbreakWarning';
-import { FacilityFinder } from '@/components/FacilityFinder';
+import { Header } from '@/components/Header';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 const Index = () => {
+  const [activeTab, setActiveTab] = useState('assess');
+
   return (
     <div className="min-h-screen bg-background">
+      <Header />
+      
       {/* Hero Section */}
-      <header className="bg-gradient-to-r from-primary to-secondary text-white">
+      <div className="bg-gradient-to-r from-primary to-secondary text-white">
         <div className="container mx-auto px-4 py-12">
           <div className="max-w-3xl mx-auto text-center">
             <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full px-4 py-2 mb-6">
@@ -25,11 +27,11 @@ const Index = () => {
             </p>
           </div>
         </div>
-      </header>
+      </div>
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
-        <Tabs defaultValue="assess" className="w-full">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-4 max-w-2xl mx-auto mb-8">
             <TabsTrigger value="assess" className="flex items-center gap-2">
               <Activity className="w-4 h-4" />
@@ -59,7 +61,15 @@ const Index = () => {
                   Describe your symptoms to get an instant risk assessment
                 </p>
               </div>
-              <MalariaChat />
+              <Card>
+                <CardHeader>
+                  <CardTitle>Malaria Chat Assistant</CardTitle>
+                  <CardDescription>Coming soon - AI-powered symptom assessment</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground">Chat feature is being loaded...</p>
+                </CardContent>
+              </Card>
             </div>
           </TabsContent>
 
@@ -73,7 +83,15 @@ const Index = () => {
                   Evidence-based information on prevention and treatment
                 </p>
               </div>
-              <EducationSection />
+              <Card>
+                <CardHeader>
+                  <CardTitle>Education Resources</CardTitle>
+                  <CardDescription>Coming soon - Learn about malaria</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground">Education content is being loaded...</p>
+                </CardContent>
+              </Card>
             </div>
           </TabsContent>
 
@@ -87,7 +105,15 @@ const Index = () => {
                   Stay informed about malaria risks in your area
                 </p>
               </div>
-              <OutbreakWarning />
+              <Card>
+                <CardHeader>
+                  <CardTitle>Outbreak Data</CardTitle>
+                  <CardDescription>Coming soon - Real-time outbreak tracking</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground">Outbreak information is being loaded...</p>
+                </CardContent>
+              </Card>
             </div>
           </TabsContent>
 
@@ -101,7 +127,15 @@ const Index = () => {
                   Locate nearby facilities for testing and treatment
                 </p>
               </div>
-              <FacilityFinder />
+              <Card>
+                <CardHeader>
+                  <CardTitle>Facility Finder</CardTitle>
+                  <CardDescription>Coming soon - Find hospitals and clinics near you</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground">Facility finder is being loaded...</p>
+                </CardContent>
+              </Card>
             </div>
           </TabsContent>
         </Tabs>

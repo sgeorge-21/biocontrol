@@ -34,7 +34,7 @@ export const EducationSection = () => {
       details: [
         'Sleep under insecticide-treated bed nets (ITNs)',
         'Use indoor residual spraying (IRS) if available',
-        'Apply DEET or picaridin repellents',
+        'Apply mosquito repellents (DEET or picaridin)',
         'Wear long sleeves and pants at dusk/dawn',
         'Eliminate standing water near homes',
       ],
